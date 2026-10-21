@@ -20,7 +20,7 @@ A Laravel-based backend project for PureDrop Dairy, a dairy delivery service. Th
 1. Clone the repository:
 
    ```bash
-   git clone YOUR_GITHUB_REPOSITORY_URL
+   git clone https://github.com/ahmedwajid017-pixel/PureDrop-Dairy.git
    cd PureDrop-Dairy
    ```
 
