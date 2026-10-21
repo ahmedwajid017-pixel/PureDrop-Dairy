@@ -30,27 +30,31 @@ A Laravel-based backend project for PureDrop Dairy, a dairy delivery service. Th
    cp .env.example .env
    ```
 
-3. Install and configure Laravel Sail if it is not already included in the project, then start the containers:
+3. Install PHP dependencies:
 
    ```bash
-   composer install
-   ./vendor/bin/sail up -d
+   docker compose run --rm laravel.test composer install
    ```
 
-4. Generate the application key:
+4. Start the application containers:
 
    ```bash
-   ./vendor/bin/sail artisan key:generate
+   docker compose up -d
    ```
 
-5. Run migrations and seed sample data:
+5. Generate the application key:
 
    ```bash
-   ./vendor/bin/sail artisan migrate --seed
+   docker compose exec laravel.test php artisan key:generate
    ```
 
-   Configure the database settings in `.env` to match the Docker Compose MySQL service before running migrations.
+6. Run migrations and seed sample data:
 
+   ```bash
+   docker compose exec laravel.test php artisan migrate --seed
+   ```
+
+Make sure the database settings in `.env` match the MySQL service configured in `compose.yaml`.
 ## Sample Data
 
 The database seeder creates at least 10 products and 5 customers using Laravel factories and Faker.
