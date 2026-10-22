@@ -1,76 +1,65 @@
-# PureDrop Dairy API
+## API Authentication
 
-A Laravel-based backend project for PureDrop Dairy, a dairy delivery service. This project establishes the core database structure for products, customers, orders, and deliveries.
+The PureDrop Dairy API uses Laravel Sanctum for token-based authentication.
 
-## Features
+### API Endpoints
 
-- Product management with price, unit, stock, and availability.
-- Customer records with contact information and address.
-- Orders linked to customers and products.
-- Deliveries linked to orders, with scheduled dates, status, and proof-of-delivery path.
-- Database factories and seeders for sample data.
+| Method | Endpoint | Description | Authentication |
+|---|---|---|---|
+| POST | `/api/register` | Register a customer | Not required |
+| POST | `/api/login` | Log in and receive an API token | Not required |
+| GET | `/api/user` | Get the authenticated user's details | Bearer token |
+| GET | `/api/admin/dashboard` | Access the admin dashboard | Admin token required |
 
-## Requirements
+### Register a Customer
 
-- Docker Desktop
-- Docker Compose
+```bash
+curl -X POST http://localhost/api/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Customer",
+    "email": "customer@example.com",
+    "password": "Password123!",
+    "password_confirmation": "Password123!"
+  }'
+```
 
-## Local Setup
+### Login
 
-1. Clone the repository:
+```bash
+curl -X POST http://localhost/api/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "customer@example.com",
+    "password": "Password123!"
+  }'
+```
 
-   ```bash
-   git clone https://github.com/ahmedwajid017-pixel/PureDrop-Dairy.git
-   cd PureDrop-Dairy
-   ```
+The login response includes an API token. Use it in the `Authorization` header for protected endpoints.
 
-2. Create your environment file:
+### Get Authenticated User
 
-   ```bash
-   cp .env.example .env
-   ```
+```bash
+curl http://localhost/api/user \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
 
-3. Install PHP dependencies:
+### Admin Dashboard
 
-   ```bash
-   docker compose run --rm laravel.test composer install
-   ```
+```bash
+curl -X GET http://localhost/api/admin/dashboard \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_API_TOKEN"
+```
 
-4. Start the application containers:
+Replace `YOUR_ADMIN_API_TOKEN` with a valid API token belonging to a user whose role is `admin`.
 
-   ```bash
-   docker compose up -d
-   ```
+Only authenticated users with the `admin` role can access the admin dashboard. Customer accounts receive a `403 Forbidden` response.
 
-5. Generate the application key:
 
-   ```bash
-   docker compose exec laravel.test php artisan key:generate
-   ```
+### Run Authentication Tests
 
-6. Run migrations and seed sample data:
-
-   ```bash
-   docker compose exec laravel.test php artisan migrate --seed
-   ```
-
-Make sure the database settings in `.env` match the MySQL service configured in `compose.yaml`.
-## Sample Data
-
-The database seeder creates at least 10 products and 5 customers using Laravel factories and Faker.
-
-## Database Structure
-
-- **Users:** Customer information.
-- **Products:** Dairy product details, pricing, stock, and availability.
-- **Orders:** Customer orders linked to products.
-- **Deliveries:** Delivery schedule, status, and optional proof-of-delivery file path.
-
-## Environment and Security
-
-- `.env.example` provides a template for environment configuration.
-- Do not commit `.env` or production credentials to version control.
-
-## Project Status
-
-Task 01: Database migrations, model relationships, factories, and sample data seeding completed.
+```bash
+docker compose exec laravel.test php artisan test --filter=AuthenticationTest
+```
