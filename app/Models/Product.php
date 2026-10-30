@@ -27,8 +27,9 @@ class Product extends Model
             'is_available' => 'boolean',
         ];
     }
+
     public function orders(): HasMany
-{
-    return $this->hasMany(Order::class);
-}
+    {
+        return $this->hasMany(Order::class);
+    }
 }
