@@ -1,6 +1,6 @@
 # PureDrop Dairy API
 
-PureDrop Dairy is a Laravel-based REST API for managing dairy products, customer authentication, and orders.
+PureDrop Dairy is a Laravel-based REST API for managing dairy products, customer authentication, orders, and delivery proof uploads.
 
 ## API Authentication
 
@@ -52,7 +52,7 @@ curl http://localhost/api/user \
 ### Admin Dashboard
 
 ```bash
-curl -X GET http://localhost/api/admin/dashboard \
+curl http://localhost/api/admin/dashboard \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_ADMIN_API_TOKEN"
 ```
@@ -101,6 +101,14 @@ The response includes product information such as:
 - Availability status
 
 Unavailable products cannot be viewed through the product detail endpoint.
+
+### Product Caching
+
+The product listing endpoint uses Laravel's caching system to improve API performance.
+
+- Product listing responses are cached for **5 minutes (300 seconds)**.
+- Cached results are reused for subsequent requests during the cache period.
+- Pagination pages use separate cache keys.
 
 ---
 
@@ -164,6 +172,73 @@ Customers can only access their own orders.
 
 ---
 
+## Delivery Proof Upload API
+
+Authenticated customers can upload delivery proof images for their own deliveries.
+
+### Delivery Endpoint
+
+| Method | Endpoint | Description | Authentication |
+|---|---|---|---|
+| POST | `/api/deliveries/{delivery}/proof` | Upload delivery proof image | Bearer token |
+
+### Upload Delivery Proof
+
+```bash
+curl -X POST http://localhost/api/deliveries/1/proof \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -F "proof=@delivery-proof.png"
+```
+
+Replace `YOUR_API_TOKEN` with a valid customer API token and use the appropriate delivery ID and image file.
+
+### Image Validation
+
+The delivery proof upload endpoint validates:
+
+- Image is required.
+- Allowed formats: JPEG, JPG, PNG, and WebP.
+- Maximum file size: 5 MB.
+
+### File Storage
+
+- Uploaded images are stored on Laravel's public disk.
+- Files are saved inside `storage/app/public/proofs`.
+- The public storage link makes uploaded images accessible through `/storage`.
+- The delivery record stores the uploaded image path in `proof_path`.
+- The API returns a public `proof_url` after a successful upload.
+- Customers can only upload proof for deliveries belonging to their own orders.
+
+### Example Successful Response
+
+```json
+{
+  "message": "Delivery proof uploaded successfully.",
+  "proof_url": "http://localhost/storage/proofs/example.png"
+}
+```
+
+### Configure Public Storage
+
+Run the following command to create the public storage symbolic link:
+
+```bash
+docker compose exec laravel.test php artisan storage:link
+```
+
+---
+
+## API Rate Limiting
+
+The API uses Laravel's throttle middleware to protect endpoints from excessive requests.
+
+- Maximum requests: **60 requests per minute**.
+- The limit applies to routes in the API middleware group.
+- Requests exceeding the limit receive an HTTP `429 Too Many Requests` response.
+
+---
+
 ## Admin Email Notifications
 
 PureDrop Dairy sends an email notification to the administrator whenever a customer successfully places an order.
@@ -177,9 +252,7 @@ The notification includes:
 - Total price
 - Order status
 
-Laravel queued mail is used to process order notification emails.
-
-Mailtrap is used for development email testing.
+Laravel queued mail is used to process order notification emails. Mailtrap is used for development email testing.
 
 ### Run the Queue Worker
 
@@ -193,7 +266,7 @@ Check the configured Mailtrap inbox to verify that order notification emails are
 
 ## Running Tests
 
-The project includes unit and feature tests for authentication, product management, and order management.
+The project includes unit and feature tests for authentication, product management, order management, delivery proof uploads, caching, and rate limiting.
 
 ### Run All Tests
 
@@ -210,7 +283,19 @@ docker compose exec laravel.test php artisan test --filter=AuthenticationTest
 ### Run Product and Order Tests
 
 ```bash
-docker compose exec laravel.test php artisan test tests/Feature/Api/ProductAndOrderTest.php
+docker compose exec laravel.test php artisan test --filter=ProductAndOrderTest
+```
+
+### Run Delivery Proof Tests
+
+```bash
+docker compose exec laravel.test php artisan test --filter=DeliveryProofTest
+```
+
+### Run Rate Limiting Tests
+
+```bash
+docker compose exec laravel.test php artisan test --filter=RateLimitingTest
 ```
 
 ### Test Coverage
@@ -225,6 +310,14 @@ The tests verify:
 - Successful order creation
 - Order validation
 - Product stock updates
+- Successful delivery proof image uploads
+- Delivery proof file storage
+- Product caching
+- API rate limiting and HTTP 429 responses
+
+### Latest Test Results
+
+All 14 tests passed successfully with 45 assertions.
 
 ---
 

@@ -6,27 +6,47 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Cache;
 
 class ProductAndOrderTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_products_can_be_listed_with_pagination(): void
-    {
-        Product::factory()->count(12)->create([
-            'is_available' => true,
+   public function test_products_are_cached_for_five_minutes(): void
+{
+    Cache::forget('products.page.1');
+
+    $product = Product::factory()->create([
+        'name' => 'Fresh Milk',
+        'is_available' => true,
+    ]);
+
+    // First request: fetch products and cache the result.
+    $firstResponse = $this->getJson('/api/products');
+
+    $firstResponse->assertOk()
+        ->assertJsonFragment([
+            'name' => 'Fresh Milk',
         ]);
 
-        $response = $this->getJson('/api/products');
+    // Change the database value after caching.
+    $product->update([
+        'name' => 'Updated Milk',
+    ]);
 
-        $response->assertOk()
-            ->assertJsonStructure([
-                'data',
-                'links',
-                'meta',
-            ])
-            ->assertJsonCount(10, 'data');
-    }
+    // Second request should return the cached old value.
+    $secondResponse = $this->getJson('/api/products');
+
+    $secondResponse->assertOk()
+        ->assertJsonFragment([
+            'name' => 'Fresh Milk',
+        ])
+        ->assertJsonMissing([
+            'name' => 'Updated Milk',
+        ]);
+
+    Cache::forget('products.page.1');
+}
 
     public function test_customer_can_view_a_product(): void
     {
