@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ProductAndOrderTest extends TestCase
@@ -63,6 +64,8 @@ class ProductAndOrderTest extends TestCase
 
     public function test_customer_can_place_an_order(): void
     {
+        Mail::fake();
+
         $user = User::factory()->create();
 
         $product = Product::factory()->create([
