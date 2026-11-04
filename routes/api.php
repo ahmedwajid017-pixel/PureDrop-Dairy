@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DeliveryController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\OrderController;
-
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::post('/deliveries/{delivery}/proof', [
-    \App\Http\Controllers\Api\DeliveryController::class,
-    'uploadProof',
-]);
+        DeliveryController::class,
+        'uploadProof',
+    ]);
 });

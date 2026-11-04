@@ -9,24 +9,23 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    
-public function up(): void
-{
-    Schema::create('deliveries', function (Blueprint $table) {
-        $table->id();
+    public function up(): void
+    {
+        Schema::create('deliveries', function (Blueprint $table) {
+            $table->id();
 
-        $table->foreignId('order_id')
-            ->unique()
-            ->constrained()
-            ->cascadeOnDelete();
+            $table->foreignId('order_id')
+                ->unique()
+                ->constrained()
+                ->cascadeOnDelete();
 
-        $table->dateTime('scheduled_at');
-        $table->string('status')->default('scheduled');
-        $table->string('proof_path')->nullable();
+            $table->dateTime('scheduled_at');
+            $table->string('status')->default('scheduled');
+            $table->string('proof_path')->nullable();
 
-        $table->timestamps();
-    });
-}
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.

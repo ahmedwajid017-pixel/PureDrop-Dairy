@@ -23,18 +23,18 @@ class DeliveryProofTest extends TestCase
 
         $product = Product::factory()->create();
 
-       $order = Order::factory()->create([
-    'user_id' => $user->id,
-    'product_id' => $product->id,
-    'quantity' => 2,
-    'total_price' => 200.00,
-    'status' => 'pending',
-]);
+        $order = Order::factory()->create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'total_price' => 200.00,
+            'status' => 'pending',
+        ]);
         $delivery = Delivery::create([
-    'order_id' => $order->id,
-    'scheduled_at' => now()->addDay(),
-    'status' => 'pending',
-]);
+            'order_id' => $order->id,
+            'scheduled_at' => now()->addDay(),
+            'status' => 'pending',
+        ]);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/deliveries/{$delivery->id}/proof", [
