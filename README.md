@@ -16,12 +16,14 @@ PureDrop Dairy is a Laravel-based REST API for managing dairy products, customer
 - Order creation and customer order management.
 - Automatic order total calculation and stock updates.
 - Admin email notifications when orders are placed.
-- Delivery proof image uploads.
+- Delivery proof image uploads with ownership validation.
 - Product listing cache for five minutes.
 - API rate limiting (60 requests per minute).
 - Automated tests using PHPUnit.
+- Code formatting checks using Laravel Pint.
 - Continuous Integration using GitHub Actions.
-- API documentation using Swagger/OpenAPI *(to be completed)*.
+- Interactive API documentation using L5-Swagger and OpenAPI.
+- Bearer Token authentication in Swagger UI.
 
 ## Technology Stack
 
@@ -349,16 +351,25 @@ Check the configured Mailtrap inbox to verify that order notification emails are
 
 ## API Documentation
 
-The project will use **L5-Swagger** to generate interactive OpenAPI documentation.
+The project uses L5-Swagger and OpenAPI to provide interactive API documentation.
 
-Planned documentation URL:
+Swagger UI allows developers to:
 
-```text
-/api/docs
-```
+- Explore available API endpoints.
+- View request parameters and response descriptions.
+- Test API requests directly from the browser.
+- Authenticate using Laravel Sanctum Bearer Tokens.
+- Understand authentication and authorization requirements.
 
-After L5-Swagger installation and configuration, users will be able to explore API endpoints and their request/response specifications through Swagger UI.
+The documentation includes:
 
+- Authentication
+- Admin
+- Products
+- Orders
+- Deliveries
+
+Swagger UI: Add your actual working Swagger UI URL here.
 ## Continuous Integration (GitHub Actions)
 
 GitHub Actions automatically runs the project's quality checks when code is pushed to the `main` branch or a pull request targets `main`.
@@ -433,18 +444,20 @@ The tests verify:
 
 ### Latest Test Results
 
-**14 tests passed with 45 assertions.**
-
-The code formatting check also passes for all 53 files.
+- 14 tests passed.
+- 45 assertions passed.
+- Laravel Pint passed for all 53 files.
+- GitHub Actions CI workflow completed successfully.
 
 ## Deployment
 
-**Hosting platform:** Railway *(deployment details to be added)*
+**Hosting Platform:** Railway
 
-**Live API URL:** To be added after deployment.
+**Live API URL:** Pending deployment.
 
-Once deployed, update this section with the public Railway URL and use it in place of `http://localhost` in the API examples.
+**Automatic Deployment:** Pending configuration.
 
+The application will be deployed to Railway after configuring the production environment, database, and GitHub Actions deployment workflow.
 ## Repository
 
 GitHub: https://github.com/ahmedwajid017-pixel/PureDrop-Dairy
