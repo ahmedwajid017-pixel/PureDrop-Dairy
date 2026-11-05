@@ -11,9 +11,30 @@ use App\Models\Product;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use OpenApi\Attributes as OA;
 
 class OrderController extends Controller
 {
+    #[OA\Get(
+        path: '/api/orders',
+        summary: 'Get customer orders',
+        tags: ['Orders'],
+        security: [['bearerAuth' => []]],
+        parameters: [
+
+            new OA\Parameter(
+                name: 'page',
+                description: 'Page number',
+                in: 'query',
+                required: false,
+                schema: new OA\Schema(type: 'integer', example: 1)
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Orders retrieved successfully'),
+            new OA\Response(response: 401, description: 'Unauthenticated')
+        ]
+    )]
     public function index(): AnonymousResourceCollection
     {
         $orders = Order::with(['product', 'user'])
@@ -24,6 +45,27 @@ class OrderController extends Controller
         return OrderResource::collection($orders);
     }
 
+    #[OA\Post(
+        path: '/api/orders',
+        summary: 'Place a new order',
+        tags: ['Orders'],
+         security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['product_id', 'quantity'],
+                properties: [
+                    new OA\Property(property: 'product_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'quantity', type: 'integer', example: 2)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Order created successfully'),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 422, description: 'Validation error, unavailable product, or insufficient stock')
+        ]
+    )]
     public function store(StoreOrderRequest $request): OrderResource
     {
         $data = $request->validated();
@@ -60,6 +102,27 @@ class OrderController extends Controller
         return new OrderResource($order);
     }
 
+    #[OA\Get(
+        path: '/api/orders/{order}',
+        summary: 'Get a single customer order',
+        tags: ['Orders'],
+         security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(
+                name: 'order',
+                description: 'Order ID',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer', example: 1)
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Order retrieved successfully'),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 403, description: 'You cannot access another customer order'),
+            new OA\Response(response: 404, description: 'Order not found')
+        ]
+    )]
     public function show(Order $order): OrderResource
     {
         abort_unless($order->user_id === auth()->id(), 403);

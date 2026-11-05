@@ -1,6 +1,101 @@
 # PureDrop Dairy API
 
-PureDrop Dairy is a Laravel-based REST API for managing dairy products, customer authentication, orders, and delivery proof uploads.
+![Laravel](https://img.shields.io/badge/Laravel-13-red)
+![PHP](https://img.shields.io/badge/PHP-8.4-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+[![PureDrop Dairy CI](https://github.com/ahmedwajid017-pixel/PureDrop-Dairy/actions/workflows/ci.yaml/badge.svg)](https://github.com/ahmedwajid017-pixel/PureDrop-Dairy/actions/workflows/ci.yaml)
+
+PureDrop Dairy is a Laravel-based REST API for managing dairy products, customer authentication, orders, and delivery proof uploads. It provides secure token-based authentication, order processing, product stock management, email notifications, and delivery proof storage.
+
+## Features
+
+- Customer registration and login using Laravel Sanctum.
+- Role-based authorization for admin routes.
+- Dairy product listing and details with pagination.
+- Order creation and customer order management.
+- Automatic order total calculation and stock updates.
+- Admin email notifications when orders are placed.
+- Delivery proof image uploads.
+- Product listing cache for five minutes.
+- API rate limiting (60 requests per minute).
+- Automated tests using PHPUnit.
+- Continuous Integration using GitHub Actions.
+- API documentation using Swagger/OpenAPI *(to be completed)*.
+
+## Technology Stack
+
+- PHP 8.4
+- Laravel 13
+- Laravel Sanctum
+- MySQL
+- REST API
+- Docker and Docker Compose
+- Mailtrap
+- PHPUnit
+- Laravel Pint
+- Git and GitHub
+- GitHub Actions
+- L5-Swagger / OpenAPI *(planned)*
+
+## Installation and Setup
+
+### Requirements
+
+Make sure you have installed:
+
+- Docker Desktop
+- Git
+- Composer (optional when using the Docker container)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/ahmedwajid017-pixel/PureDrop-Dairy.git
+cd PureDrop-Dairy
+```
+
+### 2. Configure Environment
+
+Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+Configure your database settings in `.env` to match the MySQL service in `compose.yaml`.
+
+### 3. Start Docker Containers
+
+```bash
+docker compose up -d
+```
+
+### 4. Install Dependencies
+
+```bash
+docker compose exec laravel.test composer install
+```
+
+### 5. Generate Application Key
+
+```bash
+docker compose exec laravel.test php artisan key:generate
+```
+
+### 6. Run Database Migrations and Seeders
+
+```bash
+docker compose exec laravel.test php artisan migrate --seed
+```
+
+### 7. Generate Public Storage Link
+
+```bash
+docker compose exec laravel.test php artisan storage:link
+```
+
+The API is now ready to run in your local development environment.
 
 ## API Authentication
 
@@ -19,6 +114,7 @@ The PureDrop Dairy API uses Laravel Sanctum for token-based authentication.
 
 ```bash
 curl -X POST http://localhost/api/register \
+  -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test Customer",
@@ -32,6 +128,7 @@ curl -X POST http://localhost/api/register \
 
 ```bash
 curl -X POST http://localhost/api/login \
+  -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "customer@example.com",
@@ -57,11 +154,9 @@ curl http://localhost/api/admin/dashboard \
   -H "Authorization: Bearer YOUR_ADMIN_API_TOKEN"
 ```
 
-Replace `YOUR_ADMIN_API_TOKEN` with a valid API token belonging to a user whose role is `admin`.
+Replace `YOUR_ADMIN_API_TOKEN` with a valid token belonging to a user whose role is `admin`.
 
 Only authenticated users with the `admin` role can access the admin dashboard. Customer accounts receive a `403 Forbidden` response.
-
----
 
 ## Product Management API
 
@@ -110,8 +205,6 @@ The product listing endpoint uses Laravel's caching system to improve API perfor
 - Cached results are reused for subsequent requests during the cache period.
 - Pagination pages use separate cache keys.
 
----
-
 ## Order Management API
 
 Authenticated customers can place orders and view their own orders.
@@ -141,7 +234,7 @@ The API validates the product ID and quantity before creating an order.
 
 The total price is calculated automatically using the product price and requested quantity.
 
-The system also checks product availability and stock before placing an order and decreases the available stock after a successful order.
+The system checks product availability and stock before placing an order and decreases the available stock after a successful order.
 
 The order response includes:
 
@@ -169,8 +262,6 @@ curl -X GET http://localhost/api/orders/1 \
 ```
 
 Customers can only access their own orders.
-
----
 
 ## Delivery Proof Upload API
 
@@ -221,13 +312,9 @@ The delivery proof upload endpoint validates:
 
 ### Configure Public Storage
 
-Run the following command to create the public storage symbolic link:
-
 ```bash
 docker compose exec laravel.test php artisan storage:link
 ```
-
----
 
 ## API Rate Limiting
 
@@ -236,8 +323,6 @@ The API uses Laravel's throttle middleware to protect endpoints from excessive r
 - Maximum requests: **60 requests per minute**.
 - The limit applies to routes in the API middleware group.
 - Requests exceeding the limit receive an HTTP `429 Too Many Requests` response.
-
----
 
 ## Admin Email Notifications
 
@@ -262,7 +347,32 @@ docker compose exec laravel.test php artisan queue:work --timeout=120
 
 Check the configured Mailtrap inbox to verify that order notification emails are received.
 
----
+## API Documentation
+
+The project will use **L5-Swagger** to generate interactive OpenAPI documentation.
+
+Planned documentation URL:
+
+```text
+/api/docs
+```
+
+After L5-Swagger installation and configuration, users will be able to explore API endpoints and their request/response specifications through Swagger UI.
+
+## Continuous Integration (GitHub Actions)
+
+GitHub Actions automatically runs the project's quality checks when code is pushed to the `main` branch or a pull request targets `main`.
+
+The CI workflow performs:
+
+1. Checks out the repository.
+2. Sets up PHP 8.4.
+3. Installs Composer dependencies.
+4. Prepares the Laravel environment.
+5. Runs Laravel Pint to check code formatting.
+6. Runs automated PHPUnit tests using SQLite.
+
+The CI badge at the top of this README displays the workflow status.
 
 ## Running Tests
 
@@ -298,37 +408,47 @@ docker compose exec laravel.test php artisan test --filter=DeliveryProofTest
 docker compose exec laravel.test php artisan test --filter=RateLimitingTest
 ```
 
+### Check Code Formatting
+
+```bash
+docker compose exec laravel.test ./vendor/bin/pint --test
+```
+
 ### Test Coverage
 
 The tests verify:
 
-- Customer registration and login
-- API token authentication
-- Admin authorization
-- Product listing and pagination
-- Viewing individual products
-- Successful order creation
-- Order validation
-- Product stock updates
-- Successful delivery proof image uploads
-- Delivery proof file storage
-- Product caching
-- API rate limiting and HTTP 429 responses
+- Customer registration and login.
+- API token authentication.
+- Admin authorization.
+- Product listing and pagination.
+- Viewing individual products.
+- Successful order creation.
+- Order validation.
+- Product stock updates.
+- Successful delivery proof image uploads.
+- Delivery proof file storage.
+- Product caching.
+- API rate limiting and HTTP 429 responses.
 
 ### Latest Test Results
 
-All 14 tests passed successfully with 45 assertions.
+**14 tests passed with 45 assertions.**
 
----
+The code formatting check also passes for all 53 files.
 
-## Technologies Used
+## Deployment
 
-- PHP
-- Laravel
-- Laravel Sanctum
-- MySQL
-- REST API
-- Docker
-- Mailtrap
-- PHPUnit
-- Git and GitHub
+**Hosting platform:** Railway *(deployment details to be added)*
+
+**Live API URL:** To be added after deployment.
+
+Once deployed, update this section with the public Railway URL and use it in place of `http://localhost` in the API examples.
+
+## Repository
+
+GitHub: https://github.com/ahmedwajid017-pixel/PureDrop-Dairy
+
+## License
+
+This project is open-sourced under the MIT License.
