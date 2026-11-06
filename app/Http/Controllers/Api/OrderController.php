@@ -12,6 +12,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use OpenApi\Attributes as OA;
+use App\Models\Delivery;
 
 class OrderController extends Controller
 {
@@ -66,63 +67,50 @@ class OrderController extends Controller
             new OA\Response(response: 422, description: 'Validation error, unavailable product, or insufficient stock')
         ]
     )]
-    public function store(StoreOrderRequest $request): OrderResource
-    {
-        $data = $request->validated();
+   public function store(StoreOrderRequest $request): OrderResource
+{
+    $data = $request->validated();
 
-        $order = DB::transaction(function () use ($data, $request) {
-            $product = Product::whereKey($data['product_id'])
-                ->lockForUpdate()
-                ->firstOrFail();
+    $order = DB::transaction(function () use ($data, $request) {
+        $product = Product::whereKey($data['product_id'])
+            ->lockForUpdate()
+            ->firstOrFail();
 
-            abort_unless($product->is_available, 422, 'Product is not available.');
+        abort_unless($product->is_available, 422, 'Product is not available.');
 
-            abort_if(
-                $product->stock < $data['quantity'],
-                422,
-                'Insufficient product stock.'
-            );
+        abort_if(
+            $product->stock < $data['quantity'],
+            422,
+            'Insufficient product stock.'
+        );
 
-            $product->decrement('stock', $data['quantity']);
+        $product->decrement('stock', $data['quantity']);
 
-            return Order::create([
-                'user_id' => $request->user()->id,
-                'product_id' => $product->id,
-                'quantity' => $data['quantity'],
-                'total_price' => $product->price * $data['quantity'],
-                'status' => 'pending',
-            ]);
-        });
+        $order = Order::create([
+            'user_id' => $request->user()->id,
+            'product_id' => $product->id,
+            'quantity' => $data['quantity'],
+            'total_price' => $product->price * $data['quantity'],
+            'status' => 'pending',
+        ]);
 
-        $order->load(['product', 'user']);
+        Delivery::create([
+            'order_id' => $order->id,
+            'scheduled_at' => now(),
+            'status' => 'scheduled',
+        ]);
 
-        Mail::to(config('mail.admin_address', env('ADMIN_EMAIL')))
-            ->queue(new OrderCreated($order));
+        return $order;
+    });
 
-        return new OrderResource($order);
-    }
+    $order->load(['product', 'user']);
 
-    #[OA\Get(
-        path: '/api/orders/{order}',
-        summary: 'Get a single customer order',
-        tags: ['Orders'],
-         security: [['bearerAuth' => []]],
-        parameters: [
-            new OA\Parameter(
-                name: 'order',
-                description: 'Order ID',
-                in: 'path',
-                required: true,
-                schema: new OA\Schema(type: 'integer', example: 1)
-            )
-        ],
-        responses: [
-            new OA\Response(response: 200, description: 'Order retrieved successfully'),
-            new OA\Response(response: 401, description: 'Unauthenticated'),
-            new OA\Response(response: 403, description: 'You cannot access another customer order'),
-            new OA\Response(response: 404, description: 'Order not found')
-        ]
-    )]
+    Mail::to(config('mail.admin_address', env('ADMIN_EMAIL')))
+        ->queue(new OrderCreated($order));
+
+    return new OrderResource($order);
+}
+    
     public function show(Order $order): OrderResource
     {
         abort_unless($order->user_id === auth()->id(), 403);
