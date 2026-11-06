@@ -6,17 +6,29 @@
 
 [![PureDrop Dairy CI](https://github.com/ahmedwajid017-pixel/PureDrop-Dairy/actions/workflows/ci.yaml/badge.svg)](https://github.com/ahmedwajid017-pixel/PureDrop-Dairy/actions/workflows/ci.yaml)
 
-PureDrop Dairy is a Laravel-based REST API for managing dairy products, customer authentication, orders, and delivery proof uploads. It provides secure token-based authentication, order processing, product stock management, email notifications, and delivery proof storage.
+PureDrop Dairy is a Laravel-based REST API designed to manage dairy products, customer authentication, orders, and delivery proof uploads.
+
+The API provides secure token-based authentication, role-based authorization, product management, order processing, automatic stock updates, email notifications, and delivery proof image storage.
+
+## Live Application and Documentation
+
+- **Live API:** https://puredrop-dairy-production.up.railway.app
+- **Interactive Swagger UI:** https://puredrop-dairy-production.up.railway.app/api/documentation
+- **GitHub Repository:** https://github.com/ahmedwajid017-pixel/PureDrop-Dairy
+- **GitHub Actions CI:** [View Workflow](https://github.com/ahmedwajid017-pixel/PureDrop-Dairy/actions)
 
 ## Features
 
 - Customer registration and login using Laravel Sanctum.
+- Secure API token authentication.
 - Role-based authorization for admin routes.
 - Dairy product listing and details with pagination.
 - Order creation and customer order management.
-- Automatic order total calculation and stock updates.
+- Automatic order total calculation.
+- Product stock validation and automatic stock updates.
 - Admin email notifications when orders are placed.
 - Delivery proof image uploads with ownership validation.
+- Persistent storage for uploaded delivery proof images.
 - Product listing cache for five minutes.
 - API rate limiting (60 requests per minute).
 - Automated tests using PHPUnit.
@@ -33,12 +45,15 @@ PureDrop Dairy is a Laravel-based REST API for managing dairy products, customer
 - MySQL
 - REST API
 - Docker and Docker Compose
+- Laravel Queue
 - Mailtrap
 - PHPUnit
 - Laravel Pint
 - Git and GitHub
 - GitHub Actions
-- L5-Swagger / OpenAPI *(planned)*
+- L5-Swagger
+- OpenAPI / Swagger UI
+- Railway
 
 ## Installation and Setup
 
@@ -67,6 +82,8 @@ cp .env.example .env
 
 Configure your database settings in `.env` to match the MySQL service in `compose.yaml`.
 
+Configure the mail settings if you want to test email notifications.
+
 ### 3. Start Docker Containers
 
 ```bash
@@ -91,6 +108,8 @@ docker compose exec laravel.test php artisan key:generate
 docker compose exec laravel.test php artisan migrate --seed
 ```
 
+This command creates the required database tables and seeds the initial development data.
+
 ### 7. Generate Public Storage Link
 
 ```bash
@@ -101,7 +120,7 @@ The API is now ready to run in your local development environment.
 
 ## API Authentication
 
-The PureDrop Dairy API uses Laravel Sanctum for token-based authentication.
+PureDrop Dairy uses Laravel Sanctum for secure token-based API authentication.
 
 ### Authentication Endpoints
 
@@ -138,7 +157,7 @@ curl -X POST http://localhost/api/login \
   }'
 ```
 
-The login response includes an API token. Use it in the `Authorization` header for protected endpoints.
+The login response includes an API token. Use this token in the `Authorization` header when accessing protected endpoints.
 
 ### Get Authenticated User
 
@@ -234,9 +253,14 @@ curl -X POST http://localhost/api/orders \
 
 The API validates the product ID and quantity before creating an order.
 
-The total price is calculated automatically using the product price and requested quantity.
+The system:
 
-The system checks product availability and stock before placing an order and decreases the available stock after a successful order.
+- Checks product availability and stock.
+- Calculates the total price automatically.
+- Creates the order.
+- Decreases the available product stock after a successful order.
+- Creates a delivery record for the order.
+- Sends an email notification to the administrator.
 
 The order response includes:
 
@@ -267,7 +291,7 @@ Customers can only access their own orders.
 
 ## Delivery Proof Upload API
 
-Authenticated customers can upload delivery proof images for their own deliveries.
+Authenticated customers can upload delivery proof images for deliveries belonging to their own orders.
 
 ### Delivery Endpoint
 
@@ -303,19 +327,25 @@ The delivery proof upload endpoint validates:
 - The API returns a public `proof_url` after a successful upload.
 - Customers can only upload proof for deliveries belonging to their own orders.
 
+### Persistent Storage on Railway
+
+Railway persistent storage is configured for delivery proof images.
+
+The persistent volume is mounted at:
+
+```text
+/app/storage/app/public
+```
+
+This ensures uploaded proof images remain available across application restarts and redeployments.
+
 ### Example Successful Response
 
 ```json
 {
   "message": "Delivery proof uploaded successfully.",
-  "proof_url": "http://localhost/storage/proofs/example.png"
+  "proof_url": "https://your-domain/storage/proofs/example.png"
 }
-```
-
-### Configure Public Storage
-
-```bash
-docker compose exec laravel.test php artisan storage:link
 ```
 
 ## API Rate Limiting
@@ -353,41 +383,62 @@ Check the configured Mailtrap inbox to verify that order notification emails are
 
 The project uses L5-Swagger and OpenAPI to provide interactive API documentation.
 
+### Interactive Swagger UI
+
+**Live Documentation:**
+
+https://puredrop-dairy-production.up.railway.app/api/documentation
+
+**Local Documentation:**
+
+http://localhost/api/documentation
+
 Swagger UI allows developers to:
 
 - Explore available API endpoints.
 - View request parameters and response descriptions.
-- Test API requests directly from the browser.
+- Test API requests directly from the browser using **Try it out**.
 - Authenticate using Laravel Sanctum Bearer Tokens.
 - Understand authentication and authorization requirements.
 
-The documentation includes:
+The documentation covers:
 
 - Authentication
-- Admin
+- Admin authorization
 - Products
 - Orders
 - Deliveries
 
-Swagger UI: Add your actual working Swagger UI URL here.
+### Using Bearer Token Authentication in Swagger
+
+1. Open the Swagger UI URL.
+2. Find the **Authorize** option.
+3. Enter a valid API token in the Bearer Token field.
+4. Click **Authorize**.
+5. Use **Try it out** to test protected endpoints.
+
+The `/docs` route serves the raw OpenAPI JSON documentation, while `/api/documentation` displays the interactive Swagger UI.
+
 ## Continuous Integration (GitHub Actions)
 
-GitHub Actions automatically runs the project's quality checks when code is pushed to the `main` branch or a pull request targets `main`.
+GitHub Actions is configured to automatically run the project's quality checks when code is pushed to the `main` branch or a pull request targets `main`.
 
 The CI workflow performs:
 
 1. Checks out the repository.
 2. Sets up PHP 8.4.
 3. Installs Composer dependencies.
-4. Prepares the Laravel environment.
+4. Prepares the Laravel testing environment.
 5. Runs Laravel Pint to check code formatting.
 6. Runs automated PHPUnit tests using SQLite.
 
 The CI badge at the top of this README displays the workflow status.
 
+**Workflow:** [PureDrop Dairy CI](https://github.com/ahmedwajid017-pixel/PureDrop-Dairy/actions/workflows/ci.yaml)
+
 ## Running Tests
 
-The project includes unit and feature tests for authentication, product management, order management, delivery proof uploads, caching, and rate limiting.
+The project includes automated unit and feature tests for authentication, product management, order management, delivery proof uploads, caching, and rate limiting.
 
 ### Run All Tests
 
@@ -427,7 +478,7 @@ docker compose exec laravel.test ./vendor/bin/pint --test
 
 ### Test Coverage
 
-The tests verify:
+The automated tests verify:
 
 - Customer registration and login.
 - API token authentication.
@@ -444,20 +495,36 @@ The tests verify:
 
 ### Latest Test Results
 
-- 14 tests passed.
-- 45 assertions passed.
-- Laravel Pint passed for all 53 files.
-- GitHub Actions CI workflow completed successfully.
+- **14 tests passed.**
+- **45 assertions passed.**
+- **Laravel Pint passed for all 56 files.**
+- **GitHub Actions CI workflow completed successfully.**
+
+These results reflect the latest verified local test and formatting run.
 
 ## Deployment
 
 **Hosting Platform:** Railway
 
-**Live API URL:** Pending deployment.
+**Live Application URL:**
 
-**Automatic Deployment:** Pending configuration.
+https://puredrop-dairy-production.up.railway.app
 
-The application will be deployed to Railway after configuring the production environment, database, and GitHub Actions deployment workflow.
+**Interactive Swagger UI:**
+
+https://puredrop-dairy-production.up.railway.app/api/documentation
+
+### Production Configuration
+
+The application is deployed on Railway with:
+
+- Laravel application service.
+- Railway MySQL database.
+- Production environment configuration.
+- Persistent storage for delivery proof images.
+- Public access to uploaded proof images.
+- GitHub Actions CI for automated code quality and testing checks.
+
 ## Repository
 
 GitHub: https://github.com/ahmedwajid017-pixel/PureDrop-Dairy
