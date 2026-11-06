@@ -19,12 +19,10 @@ class UserAndAdminDocumentation
             new OA\Response(
                 response: 401,
                 description: 'Unauthenticated'
-            )
+            ),
         ]
     )]
-    public function user(): void
-    {
-    }
+    public function user(): void {}
 
     #[OA\Get(
         path: '/api/admin/dashboard',
@@ -43,10 +41,8 @@ class UserAndAdminDocumentation
             new OA\Response(
                 response: 403,
                 description: 'Admin access required'
-            )
+            ),
         ]
     )]
-    public function adminDashboard(): void
-    {
-    }
+    public function adminDashboard(): void {}
 }

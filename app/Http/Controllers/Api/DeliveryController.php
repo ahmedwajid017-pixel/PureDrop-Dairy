@@ -12,10 +12,10 @@ use OpenApi\Attributes as OA;
 class DeliveryController extends Controller
 {
     #[OA\Post(
-    path: '/api/deliveries/{delivery}/proof',
-    summary: 'Upload delivery proof image',
-    tags: ['Deliveries'],
-    security: [['bearerAuth' => []]],
+        path: '/api/deliveries/{delivery}/proof',
+        summary: 'Upload delivery proof image',
+        tags: ['Deliveries'],
+        security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(
                 name: 'delivery',
@@ -23,7 +23,7 @@ class DeliveryController extends Controller
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer', example: 1)
-            )
+            ),
         ],
         requestBody: new OA\RequestBody(
             required: true,
@@ -38,7 +38,7 @@ class DeliveryController extends Controller
                             description: 'Delivery proof image',
                             type: 'string',
                             format: 'binary'
-                        )
+                        ),
                     ]
                 )
             )
@@ -59,7 +59,7 @@ class DeliveryController extends Controller
             new OA\Response(
                 response: 422,
                 description: 'Invalid proof image'
-            )
+            ),
         ]
     )]
     public function uploadProof(

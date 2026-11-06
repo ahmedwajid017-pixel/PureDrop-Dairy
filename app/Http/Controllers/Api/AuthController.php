@@ -37,7 +37,7 @@ class AuthController extends Controller
             new OA\Response(
                 response: 422,
                 description: 'Validation error'
-            )
+            ),
         ]
     )]
     public function register(Request $request)
@@ -90,7 +90,7 @@ class AuthController extends Controller
             new OA\Response(
                 response: 422,
                 description: 'Invalid credentials or validation error'
-            )
+            ),
         ]
     )]
     public function login(Request $request)

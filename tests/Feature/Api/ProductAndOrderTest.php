@@ -12,25 +12,25 @@ class ProductAndOrderTest extends TestCase
 {
     use RefreshDatabase;
 
-   public function test_products_are_returned_with_pagination(): void
-{
-    Product::factory()->create([
-        'name' => 'Fresh Milk',
-        'is_available' => true,
-    ]);
-
-    $response = $this->getJson('/api/products');
-
-    $response->assertOk()
-        ->assertJsonFragment([
+    public function test_products_are_returned_with_pagination(): void
+    {
+        Product::factory()->create([
             'name' => 'Fresh Milk',
-        ])
-        ->assertJsonStructure([
-            'data',
-            'links',
-            'meta',
+            'is_available' => true,
         ]);
-}
+
+        $response = $this->getJson('/api/products');
+
+        $response->assertOk()
+            ->assertJsonFragment([
+                'name' => 'Fresh Milk',
+            ])
+            ->assertJsonStructure([
+                'data',
+                'links',
+                'meta',
+            ]);
+    }
 
     public function test_customer_can_view_a_product(): void
     {

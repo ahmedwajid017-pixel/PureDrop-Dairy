@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-
 use OpenApi\Attributes as OA;
 
 class ProductController extends Controller
@@ -22,23 +21,23 @@ class ProductController extends Controller
                 in: 'query',
                 required: false,
                 schema: new OA\Schema(type: 'integer', example: 1)
-            )
+            ),
         ],
         responses: [
             new OA\Response(
                 response: 200,
                 description: 'Products retrieved successfully'
-            )
+            ),
         ]
     )]
-   public function index(): AnonymousResourceCollection
-{
-    $products = Product::where('is_available', true)
-        ->latest()
-        ->paginate(10);
+    public function index(): AnonymousResourceCollection
+    {
+        $products = Product::where('is_available', true)
+            ->latest()
+            ->paginate(10);
 
-    return ProductResource::collection($products);
-}
+        return ProductResource::collection($products);
+    }
 
     #[OA\Get(
         path: '/api/products/{product}',
@@ -51,7 +50,7 @@ class ProductController extends Controller
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer', example: 1)
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -61,7 +60,7 @@ class ProductController extends Controller
             new OA\Response(
                 response: 404,
                 description: 'Product not found or unavailable'
-            )
+            ),
         ]
     )]
     public function show(Product $product): ProductResource

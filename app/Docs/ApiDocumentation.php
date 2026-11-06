@@ -17,6 +17,4 @@ use OpenApi\Attributes as OA;
     description: 'Enter your Laravel Sanctum API token.'
 )]
 
-class ApiDocumentation
-{
-}
+class ApiDocumentation {}
